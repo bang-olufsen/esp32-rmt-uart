@@ -100,7 +100,7 @@ static void fill_bits(rmt_uart_contex_t* ctx, uint32_t duration, uint32_t level)
     {
         if (rrc->bit_num == 0 && level)
         {
-            ESP_LOGW(TAG, "not a start bit, skip"); 
+            // ESP_LOGW(TAG, "not a start bit, skip"); 
             return;
         }
         rrc->bit_num++;
@@ -169,7 +169,7 @@ esp_err_t rmt_uart_init(rmt_uart_port_t uart_num_rx, rmt_uart_port_t uart_num_tx
         rmt_uart_contex[uart_num_tx].rmt_config_tx = rmt_config_tx;
 
         #if CONFIG_SPIRAM_USE_MALLOC
-        rmt_uart_contex[uart_num_tx].rmt_uart_contex_tx.items = heap_caps_calloc(1, rmt_uart_config->buffer_size, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+        rmt_uart_contex[uart_num_tx].rmt_uart_contex_tx.items = heap_caps_calloc(1, rmt_uart_config->tx_items_buffer_size, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
         #else
         rmt_uart_contex[uart_num_tx].rmt_uart_contex_tx.items = calloc(rmt_uart_config->tx_items_buffer_size, sizeof(rmt_item32_t));
         #endif
