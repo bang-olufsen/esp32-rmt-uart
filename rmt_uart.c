@@ -191,7 +191,7 @@ esp_err_t rmt_uart_write_bytes(rmt_uart_port_t uart_num, const uint8_t* data, si
     return rmt_write_items(ctx->rmt_config_tx.channel, ctx->rmt_uart_contex_tx.items, rtc->item_index, true);
 }
 
-int rmt_uart_read_bytes(rmt_uart_port_t uart_num, uint8_t* buf, size_t size, TickType_t ticks_to_wait)
+int rmt_uart_read_bytes(rmt_uart_port_t uart_num, uint8_t* buf, TickType_t ticks_to_wait)
 {
     rmt_uart_contex_t* ctx = &rmt_uart_contex[uart_num];
     ESP_RETURN_ON_FALSE((ctx->configured), ESP_FAIL, TAG, "uart not configured");
@@ -213,8 +213,9 @@ int rmt_uart_read_bytes(rmt_uart_port_t uart_num, uint8_t* buf, size_t size, Tic
         }
         vRingbufferReturnItem(rrc->rb, (void*)items);
 
-        ESP_LOGD(TAG, "\trx is complete byte_num=%d", rrc->byte_num);
     }
+    rrc->byte_num = length;
+    ESP_LOGD(TAG, "\trx is complete byte_num=%d", rrc->byte_num);
     return rrc->byte_num;
 }
 
