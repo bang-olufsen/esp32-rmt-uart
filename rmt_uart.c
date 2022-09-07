@@ -233,13 +233,15 @@ esp_err_t rmt_uart_deinit(rmt_uart_port_t uart_num)
 #else
         free(rtc->items);
 #endif
-        ret = rmt_driver_uninstall(uart_num + 1);
+        ret = rmt_driver_uninstall(uart_num);
+        ESP_LOGI(TAG,"deinit TX uart_num %d", uart_num);
         if (ret != ESP_OK) return ret;
     }
 
     if (ctx->rmt_uart_config.mode != RMT_UART_MODE_TX_ONLY)
     {
         ret = rmt_driver_uninstall(uart_num);
+        ESP_LOGI(TAG,"deinit RX uart_num %d", uart_num);
         if (ret != ESP_OK) return ret;
     }
 
