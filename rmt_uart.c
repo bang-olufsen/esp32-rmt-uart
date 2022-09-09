@@ -128,7 +128,7 @@ esp_err_t rmt_uart_init(rmt_uart_port_t uart_num_rx, rmt_uart_port_t uart_num_tx
 {
     const int RMT_DIV = APB_CLK_FREQ / 50 / rmt_uart_config->baud_rate;
     const int RMT_TICK = APB_CLK_FREQ / RMT_DIV;
-    ESP_LOGI(TAG, "baud=%d rmt_div=%d rmt_tick=%d", rmt_uart_config->baud_rate, RMT_DIV, RMT_TICK);
+    ESP_LOGD(TAG, "baud=%d rmt_div=%d rmt_tick=%d", rmt_uart_config->baud_rate, RMT_DIV, RMT_TICK);
 
     ESP_RETURN_ON_FALSE((uart_num_rx < RMT_UART_NUM_MAX), ESP_FAIL, TAG, "uart_num error");
     ESP_RETURN_ON_FALSE((rmt_uart_config), ESP_FAIL, TAG, "uart_config error");
@@ -222,10 +222,31 @@ int rmt_uart_read_bytes(rmt_uart_port_t uart_num, uint8_t* buf, TickType_t ticks
 esp_err_t rmt_uart_deinit(rmt_uart_port_t uart_num)
 {
     rmt_uart_contex_t* ctx = &rmt_uart_contex[uart_num];
-    ESP_RETURN_ON_FALSE((ctx->configured), ESP_FAIL, TAG, "uart not configured");
-    esp_err_t ret = ESP_OK;
+    esp_err_t ret = ESP_FAIL;
+    
+    if (!ctx->configured) {
+        return ret;
+    }
 
-    if (ctx->rmt_uart_config.mode != RMT_UART_MODE_RX_ONLY)
+    if (ctx->rmt_uart_config.mode == RMT_UART_MODE_TX_RX) {
+        if (ctx->rmt_config_rx.rmt_mode == RMT_MODE_RX) {
+            ret = rmt_driver_uninstall(uart_num);
+            ESP_LOGD(TAG,"deinit RX uart_num %d", uart_num);
+            if (ret != ESP_OK) return ret;
+        } else if (ctx->rmt_config_tx.rmt_mode == RMT_MODE_TX) {
+            rmt_uart_contex_tx_t* rtc = &ctx->rmt_uart_contex_tx;
+            #if CONFIG_SPIRAM_USE_MALLOC
+                heap_caps_free(rtc->items);
+            #else
+                free(rtc->items);
+            #endif
+            ret = rmt_driver_uninstall(uart_num);
+            ESP_LOGD(TAG,"deinit TX uart_num %d", uart_num);
+            if (ret != ESP_OK) return ret;
+        }
+    }
+
+    else if (ctx->rmt_uart_config.mode != RMT_UART_MODE_RX_ONLY)
     {
         rmt_uart_contex_tx_t* rtc = &ctx->rmt_uart_contex_tx;
 #if CONFIG_SPIRAM_USE_MALLOC
@@ -234,14 +255,14 @@ esp_err_t rmt_uart_deinit(rmt_uart_port_t uart_num)
         free(rtc->items);
 #endif
         ret = rmt_driver_uninstall(uart_num);
-        ESP_LOGI(TAG,"deinit TX uart_num %d", uart_num);
+        ESP_LOGD(TAG,"deinit TX uart_num %d", uart_num);
         if (ret != ESP_OK) return ret;
     }
 
-    if (ctx->rmt_uart_config.mode != RMT_UART_MODE_TX_ONLY)
+    else if (ctx->rmt_uart_config.mode != RMT_UART_MODE_TX_ONLY)
     {
         ret = rmt_driver_uninstall(uart_num);
-        ESP_LOGI(TAG,"deinit RX uart_num %d", uart_num);
+        ESP_LOGD(TAG,"deinit RX uart_num %d", uart_num);
         if (ret != ESP_OK) return ret;
     }
 
