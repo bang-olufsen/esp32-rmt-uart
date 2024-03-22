@@ -215,7 +215,6 @@ int rmt_uart_read_bytes(rmt_uart_port_t uart_num, uint8_t* buf, TickType_t ticks
 
     }
     rrc->byte_num = length;
-    ESP_LOGD(TAG, "\trx is complete byte_num=%d", rrc->byte_num);
     return rrc->byte_num;
 }
 
