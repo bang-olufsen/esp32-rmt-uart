@@ -214,7 +214,6 @@ int rmt_uart_read_bytes(rmt_uart_port_t uart_num, uint8_t* buf, TickType_t ticks
         vRingbufferReturnItem(rrc->rb, (void*)items);
 
     }
-    rrc->byte_num = length;
     return rrc->byte_num;
 }
 
